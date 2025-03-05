@@ -2,6 +2,12 @@
 {
     public class KataCheckout
     {
+        private readonly Dictionary<string, (int Quantity, decimal OfferPrice)> _offers = new()
+        {
+            { "A99", (3, 1.30m) },
+            { "B15", (2, 0.45m) }
+        };
+
         private readonly Dictionary<string, decimal> _prices = new()
         {
             { "A99", 0.50m },
@@ -21,18 +27,31 @@
 
         public decimal Total()
         {
-            var groupedItems = _scannedItems.GroupBy(sku => sku);
+            var productGroupedItems = _scannedItems.GroupBy(sku => sku);
             decimal total = 0m;
 
-            foreach (var group in groupedItems)
+            foreach (var productItem in productGroupedItems)
             {
-                string sku = group.Key;
-                int quantity = group.Count();
+                string sku = productItem.Key;
+                int quantity = productItem.Count();
 
-                total += quantity * _prices[sku];
+                if (_offers.ContainsKey(sku))
+                {
+                    var (offerQuantity, offerPrice) = _offers[sku];
+                    int offerSets = quantity / offerQuantity;
+                    int remainder = quantity % offerQuantity;
+
+                    total += (offerSets * offerPrice) + (remainder * _prices[sku]);
+                    // if has an offer & total
+                }
+                else
+                {
+                    total += quantity * _prices[sku];
+                    // if no offer & total
+                }
             }
 
-                return total;
+            return total;
         }
     }
 }
